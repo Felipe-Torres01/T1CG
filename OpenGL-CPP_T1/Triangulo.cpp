@@ -275,8 +275,9 @@ bool Triangulo::PontoNoTriangulo(Ponto P)
          (Vertices[2].x - Vertices[0].x) * (P.y - Vertices[0].y);
 
     // Verifica se existem orientacoes com sinais diferentes
-    bool temNegativo = (d1 < 0) || (d2 < 0) || (d3 < 0);
-    bool temPositivo = (d1 > 0) || (d2 > 0) || (d3 > 0);
+    const double EPS = 1e-6;
+    bool temNegativo = (d1 < -EPS) || (d2 < -EPS) || (d3 < -EPS);
+    bool temPositivo = (d1 > EPS) || (d2 > EPS) || (d3 > EPS);
 
     return !(temNegativo && temPositivo);
 }

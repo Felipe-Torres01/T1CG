@@ -221,18 +221,14 @@ void contaNos(int& countNo, NoQuadtree& no){
 //      correspondente até alcançar uma folha que é retornada.
 //      Retorna um nó vazio se o ponto estiver fora dos limites globais.
 // **********************************************************************
-NoQuadtree localizaRegiaoDoPonto(Ponto pontoClicado, NoQuadtree& noAtual){
+NoQuadtree* localizaRegiaoDoPonto(Ponto pontoClicado, NoQuadtree& noAtual){
 
-    if (pontoClicado.x < Min.x || pontoClicado.y < Min.y){
-        return NoQuadtree();
-    }
-
-    if (pontoClicado.x > Max.x || pontoClicado.y > Max.y){
-        return NoQuadtree();
+    if (pontoClicado.x < Min.x ||  pontoClicado.y < Min.y || pontoClicado.x > Max.x || pontoClicado.y > Max.y){
+        return NULL; //ponto fora da area
     }
 
     if (noAtual.filhos.size() == 0){
-        return noAtual;
+        return &noAtual;
     }
 
     // Percorre verificando se a região contém o ponto clicado
@@ -242,7 +238,7 @@ NoQuadtree localizaRegiaoDoPonto(Ponto pontoClicado, NoQuadtree& noAtual){
         }
     }
 
-    return noAtual;
+    return &noAtual;
 }
 
 
@@ -309,6 +305,7 @@ void init()
     divideQuadtree(raiz);
     percorreTriangulos(raiz);
     contaNos(countNos, raiz);
+    cout << "Nos armazenados: " << countNos << endl;
 }
 
 double nFrames=0;
@@ -448,7 +445,7 @@ void PintaTriangulosQueContemPonto(Ponto P)
 // void PintaTriangulosQueContemPonto(Ponto P)
 //      Alternativa com quadtree para pintar todos os triangulos que contem o ponto P.
 // **********************************************************************
-void OutroPintaTriangulosQueContemPonto(Ponto p, vector<int> triangulosEncontrados)
+void OutroPintaTriangulosQueContemPonto(Ponto p, const vector<int>& triangulosEncontrados)
 {
     for (int i = 0; i < triangulosEncontrados.size(); i++)
     {
@@ -509,16 +506,15 @@ void display( void )
     if (FoiClicado)
     {
         // Encontra o no que tem o ponto clicado
-        NoQuadtree noEncontrado = localizaRegiaoDoPonto(PontoClicado, raiz);
+        NoQuadtree* noEncontrado = localizaRegiaoDoPonto(PontoClicado, raiz);
 
         // Pinta os
-        OutroPintaTriangulosQueContemPonto(PontoClicado, noEncontrado.indicesTriangulo);
+        if(noEncontrado != NULL){
+            OutroPintaTriangulosQueContemPonto(PontoClicado, noEncontrado.indicesTriangulo);
+            countTriangulosEmRegioes = noEncontrado.indicesTriangulo.size();
+        }
         DesenhaPontoClicado();
-        cout << "Nos armazenados: " << countNos << endl;
-
-        countTriangulosEmRegioes = noEncontrado.indicesTriangulo.size();
-
-        cout << "Triangulos em regioes: " << countTriangulosEmRegioes << endl;
+        
     }
     
     
@@ -678,7 +674,7 @@ int  main ( int argc, char** argv )
     // o invalidao da tela. A funcao "display"
     // ser chamada automaticamente sempre que a
     // mquina estiver ociosa (idle)
-    glutIdleFunc(animate);
+    //glutIdleFunc(animate); para desenhar apenas quando alguém alterar
 
     // Define que o tratador de evento para
     // o redimensionamento da janela. A funcao "reshape"
