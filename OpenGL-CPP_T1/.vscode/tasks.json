@@ -1,0 +1,58 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Compilar projeto OpenGL",
+            "type": "shell",
+            "command": "mingw32-make",
+            "args": [
+                "-f",
+                "makefile.mk"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "clear": true,
+                "reveal": "always",
+                "panel": "dedicated",
+                "focus": false,
+                "echo": true,
+                "showReuseMessage": false
+            },
+            "detail": "Compila ProgOpenGL.exe usando makefile.mk"
+        },
+        {
+            "label": "Limpar projeto OpenGL",
+            "type": "shell",
+            "command": "mingw32-make",
+            "args": [
+                "-f",
+                "makefile.mk",
+                "clean"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Executar projeto OpenGL",
+            "type": "shell",
+            "command": "${workspaceFolder}\\ProgOpenGL.exe",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "dependsOn": "Compilar projeto OpenGL",
+            "dependsOrder": "sequence",
+            "problemMatcher": []
+        }
+    ]
+}
