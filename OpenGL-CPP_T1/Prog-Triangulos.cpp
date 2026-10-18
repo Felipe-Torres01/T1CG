@@ -39,6 +39,7 @@ using namespace std;
 #endif
 
 #include "Ponto.h"
+#include "Quadtree.h"
 #include "Poligono.h"
 
 #include "Temporizador.h"
@@ -69,187 +70,7 @@ bool imprimeMat = false;
 #include "Triangulo.h"
 
 
-// Executaveis principais
-bool testeAABBQuadtree(Triangulo& triangulo, NoQuadtree& no);
-void divideQuadtree(NoQuadtree &no);
-void testeDeTriangulos(NoQuadtree& noAtual, int indiceTriangulo);
-NoQuadtree localizaRegiaoDoPonto(Ponto p, NoQuadtree& noAtual);
-
-// Método principal
-void percoreTriangulos(NoQuadtree& noRaiz);
-
 std::vector<Triangulo> Triangulos;
-
-// **********************************************************************
-// bool testeQuadtree(NoQuadtree& no, Triangulo& triangulo)
-//      Verifica se o envelope do triangulo sobrepoe uma quadtree
-//      false = não tem sobreposição
-//      true = tem sobreposição
-// **********************************************************************
-bool testeQuadtree(NoQuadtree& no, Triangulo& triangulo){
-    Ponto minimoNo = Ponto (no.aabb.centro.x - no.aabb.meiaLarg.x, no.aabb.centro.y - no.aabb.meiaLarg.y);
-    Ponto maximoNo = Ponto (no.aabb.centro.x + no.aabb.meiaLarg.x, no.aabb.centro.y + no.aabb.meiaLarg.y);
-
-    Ponto minimoTriangulo = triangulo.getEnvelope(0);
-    Ponto maximoTriangulo = triangulo.getEnvelope(1);
-
-    // Se triangulo esta a esquerda do no
-    if (maximoTriangulo.x < minimoNo.x){
-        return false;
-    }
-
-    // Se triangulo esta a direita do no
-    if (minimoTriangulo.x > maximoNo.x){
-        return false;
-    }
-
-    // Se triangulo esta abaixo
-    if (maximoTriangulo.y < minimoNo.y){
-        return false;
-    }
-
-    // Se triangulo esta acima
-    if (minimoTriangulo.y > maximoNo.y){
-        return false;
-    }
-
-    return true;
-}
-
-// **********************************************************************
-//  percorreTriangulos(NoQuadtree& noRaiz)
-//      Percorre todos os triângulos armazenados no vetor e inicia,
-//      para cada um, o processo de associação às regiões da quadtree,
-//      a partir do nó raiz.
-// **********************************************************************
-
-void percorreTriangulos(NoQuadtree& noRaiz){
-    for (int i = 0; i < Triangulos.size(); i++){
-        testeDeTriangulos(noRaiz, i);
-    }
-}
-
-// **********************************************************************
-//  void divideQuadtree(NoQuadtree& no)
-//      Realiza a divisão de uma quadtree criando seus nós filhos até atingir 
-//      o nível máximo (NIVEL_MAX = 5).
-// **********************************************************************
-void divideQuadtree(NoQuadtree& no){
-
-    if (no.nivel == NIVEL_MAX){
-        return;
-    }
-
-    NoQuadtree no1, no2, no3, no4;
-
-    // Inferior esquerdo
-    no1.aabb.meiaLarg.x = no.aabb.meiaLarg.x / 2;
-    no1.aabb.meiaLarg.y = no.aabb.meiaLarg.y / 2;
-    no1.aabb.centro = Ponto (no.aabb.centro.x - no1.aabb.meiaLarg.x, no.aabb.centro.y - no1.aabb.meiaLarg.y); 
-    no1.nivel = no.nivel + 1;
-
-    // Superior esquerdo
-    no2.aabb.meiaLarg.x = no.aabb.meiaLarg.x / 2;
-    no2.aabb.meiaLarg.y = no.aabb.meiaLarg.y / 2;
-    no2.aabb.centro = Ponto (no.aabb.centro.x - no2.aabb.meiaLarg.x, no.aabb.centro.y + no2.aabb.meiaLarg.y);
-    no2.nivel = no.nivel + 1;
-
-    // Superior direito
-    no3.aabb.meiaLarg.x = no.aabb.meiaLarg.x / 2;
-    no3.aabb.meiaLarg.y = no.aabb.meiaLarg.y / 2;
-    no3.aabb.centro = Ponto (no.aabb.centro.x + no3.aabb.meiaLarg.x, no.aabb.centro.y + no3.aabb.meiaLarg.y);
-    no3.nivel = no.nivel + 1;
-
-    // Inferior direito
-    no4.aabb.meiaLarg.x = no.aabb.meiaLarg.x / 2;
-    no4.aabb.meiaLarg.y = no.aabb.meiaLarg.y / 2;
-    no4.aabb.centro = Ponto (no.aabb.centro.x + no4.aabb.meiaLarg.x, no.aabb.centro.y - no4.aabb.meiaLarg.y);
-    no4.nivel = no.nivel + 1;
-
-    no.filhos.push_back(no1);
-    no.filhos.push_back(no2);
-    no.filhos.push_back(no3);
-    no.filhos.push_back(no4);
-
-    // Continua a dividir pelos filhos
-    for (int i = 0; i < no.filhos.size(); i++){
-        divideQuadtree(no.filhos[i]);
-    }
-}
-
-// **********************************************************************
-// void testeDeTriangulos(NoQuadtree& noAtual, int indiceTriangulo)
-//      Verifica se o envelope do triângulo indicado pelo índice se
-//      sobrepõe à região do nó atual. Em caso positivo, armazena o
-//      índice no nó e verifica recursivamente seus filhos.
-// **********************************************************************
-void testeDeTriangulos(NoQuadtree& noAtual, int indiceTriangulo){
-
-    // Verifica se o envelope do triangulo sobrepoe uma quadtree 
-    if (testeQuadtree(noAtual, Triangulos[indiceTriangulo])){
-        noAtual.indicesTriangulo.push_back(indiceTriangulo);
-
-        // Faz o teste com os filhos do nó 
-        for (int i = 0; i < noAtual.filhos.size(); i++){
-            testeDeTriangulos(noAtual.filhos[i], indiceTriangulo);
-        }
-    }
-    else {
-        return;
-    }
-}
-
-// **********************************************************************
-// void contaNos(int& countNo, NoQuadtree& no)
-//      Retorna o número de nós da quadtree. Incrementa countNo a cada
-//      nó visitado
-// **********************************************************************
-void contaNos(int& countNo, NoQuadtree& no){
-
-    countNo += 1;
-
-    // Recursivamente conta os nós dos filhos do nó dado como parâmetro
-    for (int i = 0; i < no.filhos.size(); i++){
-        contaNos(countNo, no.filhos[i]);
-    }
-}
-
-// **********************************************************************
-//  NoQuadtree localizaRegiaoDoPonto(Ponto p, NoQuadtree& noAtual)
-//      Localiza a região da quadtree que tem o ponto.
-//      Verifica os nós filhos e continua a busca pela região
-//      correspondente até alcançar uma folha que é retornada.
-//      Retorna um nó vazio se o ponto estiver fora dos limites globais.
-// **********************************************************************
-NoQuadtree* localizaRegiaoDoPonto(Ponto pontoClicado, NoQuadtree& noAtual){
-
-    if (pontoClicado.x < Min.x ||  pontoClicado.y < Min.y || pontoClicado.x > Max.x || pontoClicado.y > Max.y){
-        return NULL; //ponto fora da area
-    }
-
-    if (noAtual.filhos.size() == 0){
-        return &noAtual;
-    }
-
-    // Percorre verificando se a região contém o ponto clicado
-    for (int i = 0; i < noAtual.filhos.size(); i++){
-        if (PontoNoQuadtree(pontoClicado, noAtual.filhos[i])){
-            return localizaRegiaoDoPonto(pontoClicado, noAtual.filhos[i]);
-        }
-    }
-
-    return &noAtual;
-}
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -302,8 +123,8 @@ void init()
     raiz.aabb.meiaLarg.x = 10.0f;
     raiz.aabb.meiaLarg.y = 5.0f;
     raiz.nivel = 0;
-    divideQuadtree(raiz);
-    percorreTriangulos(raiz);
+    divideQuadtree(raiz, NIVEL_MAX);
+    percorreTriangulos(raiz,Triangulos);
     contaNos(countNos, raiz);
     cout << "Nos armazenados: " << countNos << endl;
 }
@@ -510,8 +331,8 @@ void display( void )
 
         // Pinta os
         if(noEncontrado != NULL){
-            OutroPintaTriangulosQueContemPonto(PontoClicado, noEncontrado.indicesTriangulo);
-            countTriangulosEmRegioes = noEncontrado.indicesTriangulo.size();
+           OutroPintaTriangulosQueContemPonto(PontoClicado, noEncontrado->indicesTriangulo);
+           countTriangulosEmRegioes = noEncontrado->indicesTriangulo.size();
         }
         DesenhaPontoClicado();
         

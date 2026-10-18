@@ -259,28 +259,3 @@ int lado(Ponto P1, Ponto P2, Ponto A)
     return SOBRE;
 }
 
-// **********************************************************************
-// bool PontoNoQuadtree(Ponto p, AABBQuadtree)
-// **********************************************************************
-bool PontoNoQuadtree(Ponto p, NoQuadtree& no) {
-    Ponto minimoAABBQuadtree = Ponto (no.aabb.centro.x - no.aabb.meiaLarg.x, no.aabb.centro.y - no.aabb.meiaLarg.y);
-    Ponto maximoAABBQuadtree = Ponto (no.aabb.centro.x + no.aabb.meiaLarg.x, no.aabb.centro.y + no.aabb.meiaLarg.y);
-
-    if (p.x < minimoAABBQuadtree.x) {
-        return false;
-    }
-
-    if (p.y < minimoAABBQuadtree.y) {
-        return false;
-    }
-
-    if (p.x > maximoAABBQuadtree.x) {
-        return false;
-    }
-
-    if (p.y > maximoAABBQuadtree.y) {
-        return false;
-    }
-
-    return true;
-}

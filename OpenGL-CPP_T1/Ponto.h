@@ -62,18 +62,4 @@ enum{
 
 double calculaDistancia(Ponto P, Ponto Q);
 
-typedef struct {
-    Ponto centro;
-    Ponto meiaLarg;
-} AABBQuadtree;
-
-struct NoQuadtree {
-    AABBQuadtree aabb;
-    vector<NoQuadtree> filhos;
-    std::vector<int> indicesTriangulo;
-    int nivel = 0;
-};
-
-bool PontoNoQuadtree(Ponto p, NoQuadtree& no);
-
 #endif /* Ponto_hpp */

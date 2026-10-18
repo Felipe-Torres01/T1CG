@@ -7,6 +7,7 @@ FONTES = Ponto.cpp \
          Temporizador.cpp \
          ListaDeCoresRGB.cpp \
          Triangulo.cpp \
+         Quadtree.cpp \
          Prog-Triangulos.cpp
 
 OBJETOS = $(FONTES:.cpp=.o)
