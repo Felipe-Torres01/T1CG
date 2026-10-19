@@ -289,21 +289,12 @@ bool Triangulo::PontoNoTriangulo(Ponto P)
 // **********************************************************************
 bool Triangulo::PontoNoAABB(Ponto P){
 
-    if (P.x < Envelope[0].x){
-        return false;
-    }
+     const double EPS = 1e-6;
 
-    if (P.y < Envelope[0].y){
-        return false;
-    }
-
-    if (P.x > Envelope[1].x){
-        return false;
-    }
-
-    if (P.y > Envelope[1].y){
-        return false;
-    }
+    if (P.x < Envelope[0].x - EPS) return false;
+    if (P.y < Envelope[0].y - EPS) return false;
+    if (P.x > Envelope[1].x + EPS) return false;
+    if (P.y > Envelope[1].y + EPS) return false;
 
     return true;
 }

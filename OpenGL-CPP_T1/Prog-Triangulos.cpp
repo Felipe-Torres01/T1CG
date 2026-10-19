@@ -40,6 +40,7 @@ using namespace std;
 
 #include "Ponto.h"
 #include "Quadtree.h"
+#include "Consulta.h"
 #include "Poligono.h"
 
 #include "Temporizador.h"
@@ -64,6 +65,9 @@ int countNos, countTriangulosEmRegioes;
 Ponto PosicaoDoCampoDeVisao, PontoClicado;
 bool FoiClicado = false;
 bool imprimeMat = false;
+bool usaQuadtree = true;
+bool usaEnvelope = true;
+ResultadoConsulta resultado;
 
 #include <vector>
 
@@ -293,6 +297,32 @@ void DesenhaPontoClicado()
 
     glPointSize(1);
 }
+void ImprimeResultado()
+{
+    cout << "Quadtree: " << (usaQuadtree ? "ON" : "OFF")
+         << " | Envelope: " << (usaEnvelope ? "ON" : "OFF") << endl;
+    cout << "Total de triangulos: " << resultado.totalTriangulos << endl;
+    cout << "Candidatos da quadtree: " << resultado.candidatosQuadtree << endl;
+    cout << "Aprovados pelo envelope: " << resultado.aprovadosEnvelope << endl;
+    cout << "Testes detalhados: " << resultado.testesDetalhados << endl;
+    cout << "Triangulos que contem o ponto: " << resultado.contem.size() << endl;
+    cout << "Tempo: " << resultado.tempoMicros << " us" << endl << endl;
+}
+
+void AtualizaConsulta()
+{
+    if (!FoiClicado) return;
+    resultado = executaConsulta(PontoClicado, Triangulos, raiz, usaQuadtree, usaEnvelope);
+    ImprimeResultado();
+}
+
+void MudaConfiguracao(bool quadtree, bool envelope)
+{
+    usaQuadtree = quadtree;
+    usaEnvelope = envelope;
+    AtualizaConsulta();
+    glutPostRedisplay();
+}
 // **********************************************************************
 // void display(void)
 //      Desenha a cena e destaca os triangulos que contem o ponto clicado.
@@ -325,19 +355,14 @@ void display( void )
     */
 
     
-    if (FoiClicado)
-    {
-        // Encontra o no que tem o ponto clicado
-        NoQuadtree* noEncontrado = localizaRegiaoDoPonto(PontoClicado, raiz);
-
-        // Pinta os triangulos
-        if(noEncontrado != NULL){
-           OutroPintaTriangulosQueContemPonto(PontoClicado, noEncontrado->indicesTriangulo);
-           countTriangulosEmRegioes = noEncontrado->indicesTriangulo.size();
+        if (FoiClicado)
+        {
+            for (int i = 0; i < resultado.contem.size(); i++)
+            {
+                Triangulos[resultado.contem[i]].Pinta();
+            }
+            DesenhaPontoClicado();
         }
-        DesenhaPontoClicado();
-        
-    }
     
     
     glutSwapBuffers();
@@ -408,6 +433,7 @@ void Mouse(int button, int state, int x, int y)
     PontoClicado = ConverteMouseParaUniverso(x, y);
 
     FoiClicado = true;
+    AtualizaConsulta();
     PontoClicado.imprime("- Ponto no universo: ", "\n");
 
     glutPostRedisplay();
@@ -430,6 +456,10 @@ void keyboard ( unsigned char key, int x, int y )
         case ' ':
             desenha = !desenha;
         break;
+        case '1': MudaConfiguracao(false, false); break;
+        case '2': MudaConfiguracao(false, true);  break;
+        case '3': MudaConfiguracao(true,  false); break;
+        case '4': MudaConfiguracao(true,  true);  break;
         case 'i':
             imprimeMat = true;
         default:

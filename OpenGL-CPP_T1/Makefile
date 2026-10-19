@@ -7,7 +7,7 @@ PROG = BasicoOpenGL
 
 #FONTES = Ponto.cpp Poligono.cpp Temporizador.cpp ListaDeCoresRGB.cpp ProgramaBasicoOpenGL.cpp
 
-FONTES = Ponto.cpp Poligono.cpp Triangulo.cpp Quadtree.cpp Temporizador.cpp ListaDeCoresRGB.cpp Prog-Triangulos.cpp
+FONTES = Ponto.cpp Poligono.cpp Triangulo.cpp Quadtree.cpp Consulta.cpp Temporizador.cpp ListaDeCoresRGB.cpp Prog-Triangulos.cpp
 
 #FONTES = Ponto.cpp Poligono.cpp Temporizador.cpp ListaDeCoresRGB.cpp \
 			ImageClass.cpp Texture.cpp \
@@ -16,6 +16,7 @@ FONTES = Ponto.cpp Poligono.cpp Triangulo.cpp Quadtree.cpp Temporizador.cpp List
 
 OBJETOS = $(FONTES:.cpp=.o)
 CPPFLAGS = -g -O3 -DGL_SILENCE_DEPRECATION -Wno-write-strings -Wno-narrowing -Wno-stringop-overflow # -Wall -g  # Todas as warnings, infos de debug
+
 
 UNAME = `uname`
 
