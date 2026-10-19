@@ -11,10 +11,10 @@ typedef struct {
 } AABBQuadtree;
 
 struct NoQuadtree {
-    AABBQuadtree aabb;
-    std::vector<NoQuadtree> filhos;
-    std::vector<int> indicesTriangulo;
-    int nivel = 0;
+    AABBQuadtree aabb; // Delimitador dessa região
+    std::vector<NoQuadtree> filhos; // Cada nó pode possuir ate 4 filhos, se não tiver nenhum, ele é um no folha
+    std::vector<int> indicesTriangulo; // Armazena os indices referentes aos triangulos candidados a receberem o teste
+    int nivel = 0; // O nivel do nó na quadtree
 };
 
 bool PontoNoQuadtree(Ponto p, NoQuadtree& no);

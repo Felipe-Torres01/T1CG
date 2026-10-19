@@ -265,6 +265,7 @@ void PintaTriangulosQueContemPonto(Ponto P)
 // **********************************************************************
 // void PintaTriangulosQueContemPonto(Ponto P)
 //      Alternativa com quadtree para pintar todos os triangulos que contem o ponto P.
+//      descartando o teste de força bruta para todos os triangulos (que não tem o ponto) na tela
 // **********************************************************************
 void OutroPintaTriangulosQueContemPonto(Ponto p, const vector<int>& triangulosEncontrados)
 {
@@ -329,7 +330,7 @@ void display( void )
         // Encontra o no que tem o ponto clicado
         NoQuadtree* noEncontrado = localizaRegiaoDoPonto(PontoClicado, raiz);
 
-        // Pinta os
+        // Pinta os triangulos
         if(noEncontrado != NULL){
            OutroPintaTriangulosQueContemPonto(PontoClicado, noEncontrado->indicesTriangulo);
            countTriangulosEmRegioes = noEncontrado->indicesTriangulo.size();

@@ -2,60 +2,70 @@
 
 // **********************************************************************
 // bool PontoNoQuadtree(Ponto p, AABBQuadtree)
+//      Verifica se o ponto esta em uma regiao da quadtree
 // **********************************************************************
 bool PontoNoQuadtree(Ponto p, NoQuadtree& no) {
-    Ponto minimoAABBQuadtree = Ponto (no.aabb.centro.x - no.aabb.meiaLarg.x, no.aabb.centro.y - no.aabb.meiaLarg.y);
-    Ponto maximoAABBQuadtree = Ponto (no.aabb.centro.x + no.aabb.meiaLarg.x, no.aabb.centro.y + no.aabb.meiaLarg.y);
+    
+    Ponto limiteMinimoAABBQuadtree = Ponto (no.aabb.centro.x - no.aabb.meiaLarg.x, no.aabb.centro.y - no.aabb.meiaLarg.y);
+    Ponto limiteMaximoAABBQuadtree = Ponto (no.aabb.centro.x + no.aabb.meiaLarg.x, no.aabb.centro.y + no.aabb.meiaLarg.y);
 
-    if (p.x < minimoAABBQuadtree.x) {
+
+    // Se o ponto está abaixo dos limites mínimos da região da quadtree
+    if (p.x < limiteMinimoAABBQuadtree.x) {
+        return false;
+    }
+    if (p.y < limiteMinimoAABBQuadtree.y) {
         return false;
     }
 
-    if (p.y < minimoAABBQuadtree.y) {
+    // Se o ponto está acima dos limites máximos da região da quadtree
+    if (p.x > limiteMaximoAABBQuadtree.x) {
+        return false;
+    }
+    if (p.y > limiteMaximoAABBQuadtree.y) {
         return false;
     }
 
-    if (p.x > maximoAABBQuadtree.x) {
-        return false;
-    }
-
-    if (p.y > maximoAABBQuadtree.y) {
-        return false;
-    }
-
+    // Retorna true somente se o ponto está dentro dos límites mínimos e máximos da região,
+    // indicando que está dentro do envelope
     return true;
 }
 // **********************************************************************
 // bool testeQuadtree(NoQuadtree& no, Triangulo& triangulo)
 //      Verifica se o envelope do triangulo sobrepoe uma quadtree
 // **********************************************************************
-bool testeQuadtree(NoQuadtree& no, Triangulo& triangulo){
-    Ponto minimoNo = Ponto (no.aabb.centro.x - no.aabb.meiaLarg.x, no.aabb.centro.y - no.aabb.meiaLarg.y);
-    Ponto maximoNo = Ponto (no.aabb.centro.x + no.aabb.meiaLarg.x, no.aabb.centro.y + no.aabb.meiaLarg.y);
+bool testeEnvelopeTrianguloNoQuadtree(NoQuadtree& no, Triangulo& triangulo){
 
-    Ponto minimoTriangulo = triangulo.getEnvelope(0);
-    Ponto maximoTriangulo = triangulo.getEnvelope(1);
+    // Limites minimos e maximos da região/no da quadtree
+    Ponto limiteMinimoNo = Ponto (no.aabb.centro.x - no.aabb.meiaLarg.x, no.aabb.centro.y - no.aabb.meiaLarg.y);
+    Ponto limiteMaximoNo = Ponto (no.aabb.centro.x + no.aabb.meiaLarg.x, no.aabb.centro.y + no.aabb.meiaLarg.y);
 
-    // Se triangulo esta a esquerda do no
-    if (maximoTriangulo.x < minimoNo.x){
+    // Limites minimos e maximos do envelope do triangulo
+    Ponto limiteMinimoTriangulo = triangulo.getEnvelope(0);
+    Ponto limiteMaximoTriangulo = triangulo.getEnvelope(1);
+
+    // Se o envelope do triangulo esta a esquerda do no
+    if (limiteMaximoTriangulo.x < limiteMinimoNo.x){
         return false;
     }
 
-    // Se triangulo esta a direita do no
-    if (minimoTriangulo.x > maximoNo.x){
+    // Se o envelope do triangulo esta a direita do no
+    if (limiteMinimoTriangulo.x > limiteMaximoNo.x){
         return false;
     }
 
-    // Se triangulo esta abaixo
-    if (maximoTriangulo.y < minimoNo.y){
+    // Se o envelope do triangulo esta abaixo
+    if (limiteMaximoTriangulo.y < limiteMinimoNo.y){
         return false;
     }
 
-    // Se triangulo esta acima
-    if (minimoTriangulo.y > maximoNo.y){
+    // Se o envelope do triangulo esta acima
+    if (limiteMinimoTriangulo.y > limiteMaximoNo.y){
         return false;
     }
 
+    // Retorna true somente se as coordenadas do envelope do triangulo estiver dentro
+    // dos limites minimo e maximo da regiao/no da quadtree
     return true;
 }
 
@@ -65,7 +75,7 @@ bool testeQuadtree(NoQuadtree& no, Triangulo& triangulo){
 // **********************************************************************
 void contaNos(int& countNo, NoQuadtree& no){
 
-    countNo += 1;
+    countNo += 1; 
 
     for (int i = 0; i < no.filhos.size(); i++){
         contaNos(countNo, no.filhos[i]);
@@ -95,6 +105,10 @@ NoQuadtree* localizaRegiaoDoPonto(Ponto p, NoQuadtree& noAtual){
 //  void divideQuadtree(NoQuadtree& no)
 //      Realiza a divisão de uma quadtree criando seus nós filhos até atingir 
 //      o nível máximo (NIVEL_MAX = 5).
+//
+//      Cada um dos filhos recebe como meias larguras (x e y) as metades da meia largura em x e y (divido por dois) do no pai
+//      Cada um dos filhos recebe como centro a subtracao ou soma (dependendo de onde esta a regiao do filho, acima ou abaixo) 
+//      de suas meias larguras com o centro (em x e y) do pai
 // **********************************************************************
 void divideQuadtree(NoQuadtree& no, int nivelMax){
 
@@ -102,6 +116,7 @@ void divideQuadtree(NoQuadtree& no, int nivelMax){
         return;
     }
 
+    // nos filhos que serao adicionados ao no pai
     NoQuadtree no1, no2, no3, no4;
 
     // Inferior esquerdo
@@ -128,6 +143,7 @@ void divideQuadtree(NoQuadtree& no, int nivelMax){
     no4.aabb.centro = Ponto (no.aabb.centro.x + no4.aabb.meiaLarg.x, no.aabb.centro.y - no4.aabb.meiaLarg.y);
     no4.nivel = no.nivel + 1;
 
+    // no pai com seus filhos
     no.filhos.push_back(no1);
     no.filhos.push_back(no2);
     no.filhos.push_back(no3);
@@ -147,7 +163,7 @@ void divideQuadtree(NoQuadtree& no, int nivelMax){
 void testeDeTriangulos(NoQuadtree& noAtual, int indiceTriangulo, std::vector<Triangulo>& triangulos){
 
     // Verifica se o envelope do triangulo sobrepoe uma quadtree 
-    if (testeQuadtree(noAtual, triangulos[indiceTriangulo])){
+    if (testeEnvelopeTrianguloNoQuadtree(noAtual, triangulos[indiceTriangulo])){
         noAtual.indicesTriangulo.push_back(indiceTriangulo);
 
         // Faz o teste com os filhos do nó 
@@ -162,7 +178,7 @@ void testeDeTriangulos(NoQuadtree& noAtual, int indiceTriangulo, std::vector<Tri
 // **********************************************************************
 //  percorreTriangulos(NoQuadtree& noRaiz)
 //      Percorre todos os triângulos armazenados no vetor e inicia,
-//      para cada um, o processo de associação às regiões da quadtree,
+//      para cada um, o teste para verificar se um triangulo esta dentro da regiao 
 //      a partir do nó raiz.
 // **********************************************************************
 
