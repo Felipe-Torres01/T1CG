@@ -6,6 +6,11 @@
 #include "Triangulo.h"
 #include "Quadtree.h"
 
+struct ResultadoDeTriangulosDeCadaConfiguracao {
+    int totalTriangulosConfiguracao1 = 0;
+    int totalTriangulosConfiguracao4 = 0;
+};
+
 struct ResultadoConsulta {
     int totalTriangulos = 0;
     int candidatosQuadtree = 0;   // saida da subdivisao espacial

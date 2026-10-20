@@ -60,7 +60,8 @@ float angulo=0.0;
 
 int NIVEL_MAX;
 
-int countNos, countTriangulosEmRegioes;
+// Contador de nós presente na quadtree
+int countNos;
 
 Ponto PosicaoDoCampoDeVisao, PontoClicado;
 bool FoiClicado = false;
