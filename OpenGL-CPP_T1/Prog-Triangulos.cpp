@@ -343,7 +343,7 @@ void AtualizaConsulta()
     Configuracao configuracaoAtual;
     configuracaoAtual.usaQuadtree = usaQuadtree;
     configuracaoAtual.usaEnvelope = usaEnvelope;
-    configuracaoAtual.totalTriangulos = Triangulos.size();
+    configuracaoAtual.totalTriangulos = resultado.candidatosQuadtree + resultado.aprovadosEnvelope;
     configuracoes.push_back(configuracaoAtual);
     verificaConfiguracoes(configuracoes);
 
