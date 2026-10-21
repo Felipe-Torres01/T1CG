@@ -1,5 +1,22 @@
 #include "Quadtree.h"
 
+#include "ListaDeCoresRGB.h"
+
+#ifdef WIN32
+#include <windows.h>
+#include <glut.h>
+#else
+#include <sys/time.h>
+#endif
+
+#ifdef __APPLE__
+#include <GLUT/glut.h>
+#endif
+
+#ifdef __linux__
+#include <GL/glut.h>
+#endif
+
 // **********************************************************************
 // bool PontoNoQuadtree(Ponto p, AABBQuadtree)
 //      Verifica se o ponto esta em uma regiao da quadtree
@@ -186,6 +203,70 @@ void percorreTriangulos(NoQuadtree& noRaiz, std::vector<Triangulo>& triangulos){
     for (int i = 0; i < triangulos.size(); i++){
         testeDeTriangulos(noRaiz, i, triangulos);
     }
+}
+
+// **********************************************************************
+//  void desenhaQuadtree(NoQuadtree& no)
+//      Desenha as linhas do no a partir de um dado como parametro 
+// **********************************************************************
+
+void desenha(NoQuadtree& no){
+    glBegin(GL_LINE_LOOP);
+
+        // Ponto do canto inferior esquerdo, limites minimo do no
+        glVertex2f(no.aabb.centro.x - no.aabb.meiaLarg.x, no.aabb.centro.y - no.aabb.meiaLarg.y);
+
+        // Ponto do canto superior esquerdo
+        glVertex2f(no.aabb.centro.x - no.aabb.meiaLarg.x, no.aabb.centro.y + no.aabb.meiaLarg.y);
+
+        // Ponto do canto superior direito, limites maximo do no
+        glVertex2f(no.aabb.centro.x + no.aabb.meiaLarg.x, no.aabb.centro.y + no.aabb.meiaLarg.y);
+
+        // Ponto do canto inferior direito
+        glVertex2f(no.aabb.centro.x + no.aabb.meiaLarg.x, no.aabb.centro.y - no.aabb.meiaLarg.y);
+    
+    glEnd();
+}
+
+// **********************************************************************
+//  void desenhaQuadtree(NoQuadtree& noRaiz)
+//      Desenha a quadtree inteira a partir da raiz
+// **********************************************************************
+
+void desenhaQuadtree(NoQuadtree& noRaiz){
+
+    // desenha a raiz
+    desenha(noRaiz);
+
+    for (int i = 0; i < noRaiz.filhos.size(); i++){
+        desenha(noRaiz.filhos[i]);
+    }
+}
+
+// **********************************************************************
+//  void colorirRegiao(NoQuadtree& no)
+//      Pinta a regiao com uma cor e no dado como parametro
+// **********************************************************************
+
+void colorirRegiao(NoQuadtree& no, int cor){
+    defineCor(cor);
+
+    glBegin(GL_QUADS);
+
+        // Ponto do canto inferior esquerdo, limites minimo do no
+        glVertex2f(no.aabb.centro.x - no.aabb.meiaLarg.x, no.aabb.centro.y - no.aabb.meiaLarg.y);
+
+        // Ponto do canto superior esquerdo
+        glVertex2f(no.aabb.centro.x - no.aabb.meiaLarg.x, no.aabb.centro.y + no.aabb.meiaLarg.y);
+
+        // Ponto do canto superior direito, limites maximo do no
+        glVertex2f(no.aabb.centro.x + no.aabb.meiaLarg.x, no.aabb.centro.y + no.aabb.meiaLarg.y);
+
+        // Ponto do canto inferior direito
+        glVertex2f(no.aabb.centro.x + no.aabb.meiaLarg.x, no.aabb.centro.y - no.aabb.meiaLarg.y);
+    
+    glEnd();
+    
 }
 
 
