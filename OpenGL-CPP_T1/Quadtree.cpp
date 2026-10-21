@@ -191,4 +191,3 @@ void percorreTriangulos(NoQuadtree& noRaiz, std::vector<Triangulo>& triangulos){
 
 
 
-

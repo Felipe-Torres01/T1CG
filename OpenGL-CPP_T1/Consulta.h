@@ -6,10 +6,13 @@
 #include "Triangulo.h"
 #include "Quadtree.h"
 
-struct ResultadoDeTriangulosDeCadaConfiguracao {
-    int totalTriangulosConfiguracao1 = 0;
-    int totalTriangulosConfiguracao4 = 0;
+struct Configuracao {
+    bool usaQuadtree = false;
+    bool usaEnvelope = false;
+    int totalTriangulos = 0;
 };
+
+bool seTodosOsTriangulosDeCadaConfiguracaoSaoIguais(Configuracao configuracao1, Configuracao configuracao2);
 
 struct ResultadoConsulta {
     int totalTriangulos = 0;

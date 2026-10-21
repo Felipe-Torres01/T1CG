@@ -53,3 +53,19 @@ ResultadoConsulta executaConsulta(Ponto p,
 
     return r;
 }
+
+// **********************************************************************
+// seTodosOsTriangulosDeCadaConfiguracaoSaoIguais()
+//      Verifica se cada configuracao possui os triangulos candidatos iguais
+//      true: somente se forem iguais, sem ocorrer algum descarte irregular
+//      false: ocorreu descarte de triangulos
+// **********************************************************************
+
+bool seTodosOsTriangulosDeCadaConfiguracaoSaoIguais(Configuracao configuracao1, Configuracao configuracao2){
+
+    if (configuracao1.totalTriangulos == configuracao2.totalTriangulos){
+        return true;
+    }
+
+    return false;
+}

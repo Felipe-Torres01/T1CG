@@ -54,6 +54,14 @@ Poligono Poly, RS;
 
 NoQuadtree raiz;
 
+// Vetor de configuracoes 
+// A cada atualiza consulta, o vetor avanca e armazena as informacoes de cada configuracao
+// Quanto atingir tamanho 2, fazemos a operacao de verificacao em cada uma
+std::vector<Configuracao> configuracoes;
+
+// Armazena operacao de igualdade de triangulos das configuracoes
+bool ehIgual = false;
+
 bool desenha = false;
 
 float angulo=0.0;
@@ -310,10 +318,35 @@ void ImprimeResultado()
     cout << "Tempo: " << resultado.tempoMicros << " us" << endl << endl;
 }
 
+// **********************************************************************
+// void verificaConfiguracao(int countConfiguracao)
+//      Antes da verificacao, precisa atingir tamanho maximo do vetor de
+//      configuracoes. Esvazia vetor depois para comecar de novo a verificacao
+// **********************************************************************
+void verificaConfiguracoes(vector<Configuracao> configuracoes){
+    if (configuracoes.size() == 2){
+        ehIgual = (seTodosOsTriangulosDeCadaConfiguracaoSaoIguais(configuracoes[0], configuracoes[1]));
+
+        // Esvazia vector
+        while (!configuracoes.empty()){
+            configuracoes.pop_back();
+        }
+    }
+}
+
 void AtualizaConsulta()
 {
     if (!FoiClicado) return;
     resultado = executaConsulta(PontoClicado, Triangulos, raiz, usaQuadtree, usaEnvelope);
+
+    // Armazenando informacoes da configuracao atual e armazena no vector
+    Configuracao configuracaoAtual;
+    configuracaoAtual.usaQuadtree = usaQuadtree;
+    configuracaoAtual.usaEnvelope = usaEnvelope;
+    configuracaoAtual.totalTriangulos = Triangulos.size();
+    configuracoes.push_back(configuracaoAtual);
+    verificaConfiguracoes(configuracoes);
+
     ImprimeResultado();
 }
 
