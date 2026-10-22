@@ -326,6 +326,7 @@ void ImprimeResultado()
 void verificaConfiguracoes(vector<Configuracao> configuracoes){
     if (configuracoes.size() == 2){
         ehIgual = (seTodosOsTriangulosDeCadaConfiguracaoSaoIguais(configuracoes[0], configuracoes[1]));
+        cout << "Quantidade de triangulos iguais? : " << ehIgual << endl;
 
         // Esvazia vector
         while (!configuracoes.empty()){
