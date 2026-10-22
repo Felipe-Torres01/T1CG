@@ -69,3 +69,31 @@ bool seTodosOsTriangulosDeCadaConfiguracaoSaoIguais(Configuracao configuracao1, 
 
     return false;
 }
+
+// **********************************************************************
+// void desenhaCandidadtosDaQuadtree(ResultadoConsulta r, std::vector<Triangulo> triangulos)
+//      Desenha os triangulos candidatos que passaram no teste da quadtree
+//      Parametro é a consulta para pegar a quantidade de candidatos e os indices
+//      e o total de triangulos presentes no programa original
+// **********************************************************************
+
+void desenhaCandidatosDaQuadtree(ResultadoConsulta r, std::vector<Triangulo> Triangulos){
+
+    for (int i = 0; i < r.candidatosQuadtree; i++){
+        Triangulos[r.regiao->indicesTriangulo[i]].Desenha();
+    }
+}
+
+// **********************************************************************
+// void desenhaAprovadosPeloEnvelope(ResultadoConsulta r, std::vector<Triangulo> triangulos)
+//      Desenha os triangulos candidatos foram aprovados no teste de envelope
+//      Parametro é a consulta para pegar os triangulos aprovados e os indices
+//      e o total de triangulos presentes no programa original
+// **********************************************************************
+
+void desenhaAprovadosPeloEnvelope(ResultadoConsulta r, std::vector<Triangulo> Triangulos){
+
+    for (int i = 0; i < r.aprovadosEnvelope; i++){
+        Triangulos[r.aprovados[i]].Desenha();
+    }
+}
