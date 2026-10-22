@@ -206,11 +206,11 @@ void percorreTriangulos(NoQuadtree& noRaiz, std::vector<Triangulo>& triangulos){
 }
 
 // **********************************************************************
-//  void desenhaQuadtree(NoQuadtree& no)
+//  void desenhaNo(NoQuadtree& no)
 //      Desenha as linhas do no a partir de um dado como parametro 
 // **********************************************************************
 
-void desenha(NoQuadtree& no){
+void desenhaNo(NoQuadtree& no){
     glBegin(GL_LINE_LOOP);
 
         // Ponto do canto inferior esquerdo, limites minimo do no
@@ -236,10 +236,10 @@ void desenha(NoQuadtree& no){
 void desenhaQuadtree(NoQuadtree& noRaiz){
 
     // desenha a raiz
-    desenha(noRaiz);
+    desenhaNo(noRaiz);
 
     for (int i = 0; i < noRaiz.filhos.size(); i++){
-        desenha(noRaiz.filhos[i]);
+        desenhaNo(noRaiz.filhos[i]);
     }
 }
 

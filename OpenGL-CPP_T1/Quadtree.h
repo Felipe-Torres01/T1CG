@@ -24,7 +24,7 @@ void testeDeTriangulos(NoQuadtree& noAtual, int indiceTriangulo, std::vector<Tri
 void percorreTriangulos(NoQuadtree& noRaiz, std::vector<Triangulo>& triangulos);
 void contaNos(int& countNo, NoQuadtree& no);
 NoQuadtree* localizaRegiaoDoPonto(Ponto p, NoQuadtree& noAtual);
-void desenha(NoQuadtree& no);
+void desenhaNo(NoQuadtree& no);
 void desenhaQuadtree(NoQuadtree& no);
 void colorirRegiao(NoQuadtree& no, int cor);
 
