@@ -735,12 +735,12 @@ void display( void )
     */
 
     // realizaDesenhoQuadtree(); 
+    // desenhaEnvelopes(); 
     
         if (FoiClicado)
         {
             /*
             destacaRegiaoContemPonto(); 
-            desenhaEnvelopes(); 
             desenhaCandidadosQuadtree();
             desenhaAprovadosEnvelope();
             desenhaTriangulosContemPonto();
