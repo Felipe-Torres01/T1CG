@@ -88,6 +88,351 @@ std::vector<Triangulo> Triangulos;
 
 
 // **********************************************************************
+// COMECO DOS METODOS/FUNCOES QUE OPERAM SOBRE OPCOES DE DESENHOS
+// **********************************************************************
+
+// **********************************************************************
+// void opcaoDesenhaQuadtree()
+//      Operacao no qual permite visualizar o desenho da quadtree
+//      por meio de uma tecla. 
+//      
+//      Chamada na funcao keyboard()
+//
+//      Operacao liga/desliga:
+//      opDesenhoQuadtree = true         Pode desenhar
+//      opDesenhoQuadtree = false        Nao desenha
+// **********************************************************************
+
+bool opDesenhaQuadtree = false;
+bool permiteDesenharQuadtree = false;
+
+void opcaoDesenhaQuadtree(){
+    opDesenhaQuadtree = !opDesenhaQuadtree;
+
+    switch (opDesenhaQuadtree){
+        case true:
+            permiteDesenharQuadtree = true;
+        break;
+
+        case false:
+            permiteDesenharQuadtree = true;
+        break;
+
+        default:
+            permiteDesenharQuadtree = false;
+        break;
+    }
+}
+
+// **********************************************************************
+// void realizaDesenhoQuadtree()
+//      Operacao no qual verifica se da para realizar o desenho da
+//      quadtree, chamando o metodo principal.  
+//
+//      Chama na funcao display() para exibicao
+//
+//      Operacao liga/desliga:
+//      permiteDesenharQuadtree = true         Pode desenhar
+//      permiteDesenharQuadtree = false        Nao desenha
+// **********************************************************************
+
+void realizaDesenhoQuadtree(){
+    if (permiteDesenharQuadtree){
+        desenhaQuadtree(raiz);
+    }
+}
+
+
+
+
+// **********************************************************************
+// void opcaoDestacaRegiaoContemPonto()
+//      Operacao no qual permite visualizar o destaque da regiao que contem
+//      o ponto por meio de uma tecla. 
+//
+//      Chamada na funcao keyboard()
+//
+//      Operacao liga/desliga:
+//      opcaoDestacaRegiao = true         Pode destacar
+//      opcaoDestacaRegiao = false        Nao destaca
+// **********************************************************************
+
+bool opcaoDestacaRegiao = false;
+bool permiteDestacarRegiao = false;
+
+void opcaoDestacaRegiaoContemPonto(){
+    opcaoDestacaRegiao = !opcaoDestacaRegiao;
+
+    switch (opcaoDestacaRegiao){
+        case true:
+            permiteDestacarRegiao = true;
+        break;
+
+        case false:
+            permiteDestacarRegiao = false;
+        break;
+
+        deafult:
+            permiteDestacarRegiao = false;
+        break;
+    }
+}
+
+// **********************************************************************
+// void destacaRegiaoContemPonto()
+//      Operacao no qual verifica se da para realizar o destaque da
+//      regiao, chamando o metodo principal.  
+//
+//      Chama na funcao display() para exibicao
+//
+//      Operacao liga/desliga:
+//      permiteDestacarRegiao = true         Pode destacar
+//      permiteDestacarRegiao = false        Nao destaca
+// **********************************************************************
+
+void destacaRegiaoContemPonto(){
+    if (permiteDestacarRegiao){
+        NoQuadtree* regiaoContemPonto = localizaRegiaoDoPonto(PontoClicado, raiz);
+        int cor = (Blue + 1);
+        colorirRegiao(*regiaoContemPonto, cor);
+    }
+}
+
+
+
+
+// **********************************************************************
+// void opcaoDesenhaEnvelopes()
+//      Operacao no qual permite visualizar os desenhos das bounding boxes
+//      dos triangulos por meio de uma tecla. 
+//
+//      Chamada na funcao keyboard()
+//
+//      Operacao liga/desliga:
+//      opcaoDesenhaEnvelope = true         Pode desenhar
+//      opcaoDesenhaEnvelope = false        Nao desenha
+// **********************************************************************
+
+bool opcaoDesenhaEnvelope = false;
+bool permiteDesenharEnvelope = false;
+
+void opcaoDesenhaEnvelopes(){
+    opcaoDesenhaEnvelope = !opcaoDesenhaEnvelope;
+
+    switch (opcaoDesenhaEnvelope){
+        case true:
+            permiteDesenharEnvelope = true;
+        break;
+
+        case false:
+            permiteDesenharEnvelope = false;
+        break;
+
+        default:
+            permiteDesenharEnvelope = false;
+        break;
+    }
+}
+
+// **********************************************************************
+// void desenhaEnvelopes()
+//      Operacao no qual verifica se da para realizar os desenhos das
+//      bounding boxes dos triangulos, chamando o metodo principal.  
+//
+//      Chama na funcao display() para exibicao
+//
+//      Operacao liga/desliga:
+//      permiteDesenharEnvelope = true         Pode destacar
+//      permiteDesenharEnvelope = false        Nao destaca
+// **********************************************************************
+
+void desenhaEnvelopes(){
+    if (permiteDesenharEnvelope){
+        for (int i = 0; i < Triangulos.size(); i++){
+            Triangulos[i].DesenhaEnvelope();
+        }
+    }
+}
+
+
+
+
+
+// **********************************************************************
+// void opcaoDesenhaCandidatosQuadtree()
+//      Operacao no qual permite visualizar os candidatos do teste da 
+//      quadtree por meio de uma tecla. 
+//
+//      Chamada na funcao keyboard()
+//
+//      Operacao liga/desliga:
+//      opcaoDesenhaCandidato = true         Pode desenhar
+//      opcaoDesenhaCandidato = false        Nao desenha
+// **********************************************************************
+
+bool opcaoDesenhaCandidato = false;
+bool permiteDesenharCandidatos = false;
+
+void opcaoDesenhaCandidatosQuadtree(){
+    opcaoDesenhaCandidato = !opcaoDesenhaCandidato;
+
+    switch (opcaoDesenhaCandidato){
+        case true:
+            permiteDesenharCandidatos = true;
+        break;
+
+        case false:
+            permiteDesenharCandidatos = false;
+        break;
+
+        default:
+            permiteDesenharCandidatos = false;
+        break;
+    }
+}
+
+// **********************************************************************
+// void desenhaCandidadosQuadtree()
+//      Operacao no qual verifica se da para realizar os desenhos dos
+//      candidatos da quadtree, chamando o metodo principal.  
+//
+//      Chama na funcao display() para exibicao
+//
+//      Operacao liga/desliga:
+//      permiteDesenharCandidatos = true         Pode destacar
+//      permiteDesenharCandidatos = false        Nao destaca
+// **********************************************************************
+
+void desenhaCandidadosQuadtree(){
+    if (permiteDesenharCandidatos){
+        desenhaCandidatosDaQuadtree(resultado, Triangulos);
+    }
+}
+
+
+
+
+
+
+// **********************************************************************
+// void opcaoDesenhaAprovadosEnvelope()
+//      Operacao no qual permite visualizar os triangulos aprovados pelo
+//      teste de envelope por meio de uma tecla. 
+//
+//      Chamada na funcao keyboard()
+//
+//      Operacao liga/desliga:
+//      opcaoAprovadosEnvelope = true         Pode desenhar
+//      opcaoAprovadosEnvelope = false        Nao desenha
+// **********************************************************************
+
+bool opcaoAprovadosEnvelope = false;
+bool permiteDesenharAprovadosEnvelope = false;
+
+void opcaoDesenhaAprovadosEnvelope(){
+    opcaoAprovadosEnvelope = !opcaoAprovadosEnvelope;
+
+    switch (opcaoAprovadosEnvelope){
+        case true:
+            permiteDesenharAprovadosEnvelope = true;
+        break;
+
+        case false:
+            permiteDesenharAprovadosEnvelope = false;
+        break;
+
+        default:
+            permiteDesenharAprovadosEnvelope = false;
+        break;
+    }
+}
+
+// **********************************************************************
+// void desenhaAprovadosEnvelope()
+//      Operacao no qual verifica se da para realizar os desenhos dos
+//      aprovados no envelope, chamando o metodo principal.  
+//
+//      Chama na funcao display() para exibicao
+//
+//      Operacao liga/desliga:
+//      permiteDesenharAprovadosEnvelope = true         Pode destacar
+//      permiteDesenharAprovadosEnvelope = false        Nao destaca
+// **********************************************************************
+
+void desenhaAprovadosEnvelope(){
+    if (permiteDesenharAprovadosEnvelope){
+        desenhaAprovadosPeloEnvelope(resultado, Triangulos);
+    }
+}
+
+
+
+
+
+
+// **********************************************************************
+// opcaoDesenhaTriangulosContemPonto()
+//      Operacao no qual permite visualizar os triangulos que contem o ponto
+//      pelo teste de forca bruta por meio de uma tecla. 
+//
+//      Operacao liga/desliga:
+//      opcaoTriangulosContemPonto = true         Pode desenhar
+//      opcaoTriangulosContemPonto = false        Nao desenha
+// **********************************************************************
+
+bool opcaoTriangulosContemPonto = false;
+bool permiteDesenharTriangulosContemPonto = false;
+
+void opcaoDesenhaTriangulosContemPonto(){
+    opcaoTriangulosContemPonto = !opcaoTriangulosContemPonto;
+
+    switch (opcaoTriangulosContemPonto){
+        case true:
+            permiteDesenharTriangulosContemPonto = true;
+        break;
+
+        case false:
+            permiteDesenharTriangulosContemPonto = false;
+        break;
+
+        default:
+            permiteDesenharTriangulosContemPonto = false;
+        break;
+    }
+}
+
+// **********************************************************************
+// void desenhaTriangulosContemPonto()
+//      Operacao no qual verifica se da para realizar os desenhos dos
+//      triangulos que contem o ponto, chamando o metodo principal.  
+//
+//      Chama na funcao display() para exibicao
+//
+//      Operacao liga/desliga:
+//      permiteDesenharTriangulosContemPonto = true         Pode destacar
+//      permiteDesenharTriangulosContemPonto = false        Nao destaca
+// **********************************************************************
+
+void desenhaTriangulosContemPonto(){
+    if (permiteDesenharTriangulosContemPonto){
+        PintaTriangulosQueContemPonto(PontoClicado);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+// **********************************************************************
+// COMECO DOS METODOS/FUNCOES GERAIS DO PROGRAMA
+// **********************************************************************
+
+// **********************************************************************
 // float Aleatorio(float min, float max)
 //      Gera e retorna um numero real aleatorio no intervalo [min, max].
 // **********************************************************************
@@ -389,9 +734,17 @@ void display( void )
     }
     */
 
+    // realizaDesenhoQuadtree(); 
     
         if (FoiClicado)
         {
+            /*
+            destacaRegiaoContemPonto(); 
+            desenhaEnvelopes(); 
+            desenhaCandidadosQuadtree();
+            desenhaAprovadosEnvelope();
+            desenhaTriangulosContemPonto();
+            */
             for (int i = 0; i < resultado.contem.size(); i++)
             {
                 Triangulos[resultado.contem[i]].Pinta();
@@ -495,6 +848,13 @@ void keyboard ( unsigned char key, int x, int y )
         case '2': MudaConfiguracao(false, true);  break;
         case '3': MudaConfiguracao(true,  false); break;
         case '4': MudaConfiguracao(true,  true);  break;
+        // Trata de desenhos liga/desliga na tela
+        case '5': opcaoDesenhaQuadtree(); break;
+        case '6': opcaoDestacaRegiaoContemPonto(); break;
+        case '7': opcaoDesenhaEnvelopes(); break;
+        case '8': opcaoDesenhaCandidatosQuadtree(); break;
+        case '9': opcaoDesenhaAprovadosEnvelope(); break;
+        case '10': opcaoDesenhaTriangulosContemPonto(); break;
         case 'i':
             imprimeMat = true;
         default:
