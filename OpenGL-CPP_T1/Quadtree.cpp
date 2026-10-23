@@ -229,17 +229,18 @@ void desenhaNo(NoQuadtree& no){
 }
 
 // **********************************************************************
-//  void desenhaQuadtree(NoQuadtree& noRaiz)
-//      Desenha a quadtree inteira a partir da raiz
+//  void desenhaQuadtree(NoQuadtree& no)
+//      Desenha a quadtree inteira 
 // **********************************************************************
 
-void desenhaQuadtree(NoQuadtree& noRaiz){
+void desenhaQuadtree(NoQuadtree& no){
 
-    // desenha a raiz
-    desenhaNo(noRaiz);
+    // desenha o no
+    desenhaNo(no);
 
-    for (int i = 0; i < noRaiz.filhos.size(); i++){
-        desenhaNo(noRaiz.filhos[i]);
+    // Funcao recursiva que percorre todos os nos para desenhar
+    for (int i = 0; i < no.filhos.size(); i++){
+        desenhaQuadtree(no.filhos[i]);
     }
 }
 
