@@ -1,5 +1,6 @@
 #include <chrono>
 #include "Consulta.h"
+#include "ListaDeCoresRGB.h"
 
 ResultadoConsulta executaConsulta(Ponto p,
                                   std::vector<Triangulo>& triangulos,
@@ -77,10 +78,11 @@ bool seTodosOsTriangulosDeCadaConfiguracaoSaoIguais(Configuracao configuracao1, 
 //      e o total de triangulos presentes no programa original
 // **********************************************************************
 
-void desenhaCandidatosDaQuadtree(ResultadoConsulta r, std::vector<Triangulo> Triangulos){
+void desenhaCandidatosDaQuadtree(const ResultadoConsulta& r, std::vector<Triangulo>& Triangulos){
 
-    for (int i = 0; i < r.candidatosQuadtree; i++){
-        Triangulos[r.regiao->indicesTriangulo[i]].Desenha();
+    if (r.regiao == NULL) return;   // quadtree desligada: nao ha regiao
+    for (int i = 0; i < (int)r.regiao->indicesTriangulo.size(); i++){
+        Triangulos[r.regiao->indicesTriangulo[i]].Desenha(Orange);
     }
 }
 
@@ -91,9 +93,9 @@ void desenhaCandidatosDaQuadtree(ResultadoConsulta r, std::vector<Triangulo> Tri
 //      e o total de triangulos presentes no programa original
 // **********************************************************************
 
-void desenhaAprovadosPeloEnvelope(ResultadoConsulta r, std::vector<Triangulo> Triangulos){
+void desenhaAprovadosPeloEnvelope(const ResultadoConsulta& r, std::vector<Triangulo>& Triangulos){
 
-    for (int i = 0; i < r.aprovadosEnvelope; i++){
-        Triangulos[r.aprovados[i]].Desenha();
+    for (int i = 0; i < (int)r.aprovados.size(); i++){
+        Triangulos[r.aprovados[i]].Desenha(Violet);
     }
 }

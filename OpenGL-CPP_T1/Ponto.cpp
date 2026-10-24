@@ -102,7 +102,7 @@ Ponto ObtemMaximo (Ponto P1, Ponto P2)
     
     Max.x = (P2.x > P1.x) ? P2.x : P1.x;
     Max.y = (P2.y > P1.y) ? P2.y : P1.y;
-    Max.z = (P2.z > P1.x) ? P2.z : P1.z;
+    Max.z = (P2.z > P1.z) ? P2.z : P1.z;
     return Max;
 }
 Ponto ObtemMinimo (Ponto P1, Ponto P2)
@@ -111,7 +111,7 @@ Ponto ObtemMinimo (Ponto P1, Ponto P2)
     
     Min.x = (P2.x < P1.x) ? P2.x : P1.x;
     Min.y = (P2.y < P1.y) ? P2.y : P1.y;
-    Min.z = (P2.z < P1.x) ? P2.z : P1.z;
+    Min.z = (P2.z < P1.z) ? P2.z : P1.z;
     return Min;
 }
 bool operator==(Ponto P1, Ponto P2)

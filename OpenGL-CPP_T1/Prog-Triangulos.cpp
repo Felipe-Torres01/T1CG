@@ -20,6 +20,10 @@
 #include <cmath>
 #include <ctime>
 #include <fstream>
+#include <random>
+#include <cstdio>
+#include <algorithm>
+#include <cstdlib>
 
 using namespace std;
 
@@ -108,20 +112,7 @@ bool permiteDesenharQuadtree = false;
 
 void opcaoDesenhaQuadtree(){
     opDesenhaQuadtree = !opDesenhaQuadtree;
-
-    switch (opDesenhaQuadtree){
-        case true:
-            permiteDesenharQuadtree = true;
-        break;
-
-        case false:
-            permiteDesenharQuadtree = true;
-        break;
-
-        default:
-            permiteDesenharQuadtree = false;
-        break;
-    }
+    permiteDesenharQuadtree = opDesenhaQuadtree;
 }
 
 // **********************************************************************
@@ -191,10 +182,11 @@ void opcaoDestacaRegiaoContemPonto(){
 // **********************************************************************
 
 void destacaRegiaoContemPonto(){
-    if (permiteDestacarRegiao){
+    if (permiteDestacarRegiao && FoiClicado){
         NoQuadtree* regiaoContemPonto = localizaRegiaoDoPonto(PontoClicado, raiz);
-        int cor = (Blue + 1);
-        colorirRegiao(*regiaoContemPonto, cor);
+        if (regiaoContemPonto != NULL){
+            colorirRegiao(*regiaoContemPonto, Blue + 1);
+        }
     }
 }
 
@@ -414,9 +406,9 @@ void opcaoDesenhaTriangulosContemPonto(){
 // **********************************************************************
 
 void desenhaTriangulosContemPonto(){
-    if (permiteDesenharTriangulosContemPonto){
-        PintaTriangulosQueContemPonto(PontoClicado);
-    }
+    if (permiteDesenharTriangulosContemPonto)
+        for (int i = 0; i < (int)resultado.contem.size(); i++)
+            Triangulos[resultado.contem[i]].Pinta(Red);
 }
 
 
@@ -445,17 +437,115 @@ float Aleatorio(float min, float max)
 // void CriaTriangulos()
 //      Cria triangulos com vertices e cores aleatorias.
 // **********************************************************************
+// Parametros do cenario (podem ser passados na linha de comando)
+int N_TRIANGULOS = 10000;
+unsigned int SEMENTE = 1;
+float TAM_TRIANGULO = 0.5f;   // "raio" medio dos triangulos, em unidades do cenario
+
 void CriaTriangulos()
 {
-    for (int i = 0; i < 10000; i++)
+    srand(SEMENTE);
+    Triangulos.clear();
+    for (int i = 0; i < N_TRIANGULOS; i++)
     {
-        Ponto P1(Aleatorio(Min.x, Max.x), Aleatorio(Min.y, Max.y));
-        Ponto P2(Aleatorio(Min.x, Max.x), Aleatorio(Min.y, Max.y));
-        Ponto P3(Aleatorio(Min.x, Max.x), Aleatorio(Min.y, Max.y));
+        float cx = Aleatorio(Min.x, Max.x);
+        float cy = Aleatorio(Min.y, Max.y);
+        Ponto P1(cx + Aleatorio(-TAM_TRIANGULO, TAM_TRIANGULO), cy + Aleatorio(-TAM_TRIANGULO, TAM_TRIANGULO));
+        Ponto P2(cx + Aleatorio(-TAM_TRIANGULO, TAM_TRIANGULO), cy + Aleatorio(-TAM_TRIANGULO, TAM_TRIANGULO));
+        Ponto P3(cx + Aleatorio(-TAM_TRIANGULO, TAM_TRIANGULO), cy + Aleatorio(-TAM_TRIANGULO, TAM_TRIANGULO));
 
         int cor = rand() % (Black + 1);
         Triangulos.push_back(Triangulo(P1, P2, P3, cor));
     }
+    cout << "Cenario: semente=" << SEMENTE << " N=" << N_TRIANGULOS
+         << " tamanho=" << TAM_TRIANGULO << endl;
+}
+
+// ----------------------------------------------------------------------
+// BENCHMARK: roda as 4 configuracoes sobre as MESMAS posicoes de consulta,
+// confere cada resultado com a forca bruta e acrescenta linhas em benchmark.csv
+// ----------------------------------------------------------------------
+int NIVEL_INICIAL = 5;        // nivel da quadtree ao iniciar (argumento 4)
+bool MODO_BENCH = false;      // se verdadeiro, roda o benchmark e encerra (argumento 5)
+
+void Benchmark(int nConsultas)
+{
+    // posicoes fixas (semente propria), iguais para todas as configuracoes
+    std::mt19937 gerador(12345);
+    std::uniform_real_distribution<float> dx(Min.x, Max.x), dy(Min.y, Max.y);
+    std::vector<Ponto> pos;
+    for (int i = 0; i < nConsultas; i++)
+        pos.push_back(Ponto(dx(gerador), dy(gerador)));
+
+    const bool q[4] = {false, false, true, true};
+    const bool e[4] = {false, true, false, true};
+    const char* nome[4] = {"forca bruta", "so envelope", "so quadtree", "quadtree+envelope"};
+
+    // cabecalho do CSV (so se o arquivo ainda nao existe ou esta vazio)
+    bool escreveCabecalho = false;
+    {
+        std::ifstream teste("benchmark.csv");
+        escreveCabecalho = !teste.good() || teste.peek() == std::ifstream::traits_type::eof();
+    }
+    std::ofstream csv("benchmark.csv", std::ios::app);
+    if (escreveCabecalho)
+        csv << "N;semente;tamanho;nivel;nos;config;consultas;tempo_medio_us;cand_quadtree;aprov_envelope;testes_detalhados;contem;divergencias" << endl;
+
+    cout << "=== Benchmark: N=" << N_TRIANGULOS << " semente=" << SEMENTE << " tamanho=" << TAM_TRIANGULO
+         << " nivel=" << NIVEL_MAX << " nos=" << countNos << " consultas=" << nConsultas << " ===" << endl;
+
+    for (int c = 0; c < 4; c++)
+    {
+        // aquecimento (nao conta)
+        for (int i = 0; i < 50 && i < nConsultas; i++)
+            executaConsulta(pos[i], Triangulos, raiz, q[c], e[c]);
+
+        double tempo = 0, cand = 0, aprov = 0, det = 0, cont = 0;
+        int diverge = 0;
+        for (int i = 0; i < nConsultas; i++)
+        {
+            ResultadoConsulta r = executaConsulta(pos[i], Triangulos, raiz, q[c], e[c]);
+            tempo += r.tempoMicros;
+            cand  += r.candidatosQuadtree;
+            aprov += r.aprovadosEnvelope;
+            det   += r.testesDetalhados;
+            cont  += r.contem.size();
+
+            ResultadoConsulta ref = executaConsulta(pos[i], Triangulos, raiz, false, false);
+            std::vector<int> a = r.contem, b = ref.contem;
+            std::sort(a.begin(), a.end());
+            std::sort(b.begin(), b.end());
+            if (a != b) diverge++;
+        }
+        tempo /= nConsultas; cand /= nConsultas; aprov /= nConsultas; det /= nConsultas; cont /= nConsultas;
+
+        printf("%d) %-18s tempo=%9.2f us | cand=%9.1f | aprov=%9.1f | testes=%9.1f | contem=%6.2f | divergencias=%d\n",
+               c + 1, nome[c], tempo, cand, aprov, det, cont, diverge);
+
+        csv << N_TRIANGULOS << ";" << SEMENTE << ";" << TAM_TRIANGULO << ";" << NIVEL_MAX << ";" << countNos << ";"
+            << nome[c] << ";" << nConsultas << ";" << tempo << ";" << cand << ";" << aprov << ";"
+            << det << ";" << cont << ";" << diverge << endl;
+    }
+    cout << "(linhas acrescentadas em benchmark.csv)" << endl << endl;
+}
+
+void AtualizaConsulta();   // declarada aqui porque e definida mais abaixo
+
+void ReconstroiQuadtree()
+{
+    raiz = NoQuadtree();           // zera filhos e indices
+    raiz.aabb.centro = Ponto(0, 0);
+    raiz.aabb.meiaLarg.x = 10.0f;
+    raiz.aabb.meiaLarg.y = 5.0f;
+    raiz.nivel = 0;
+    divideQuadtree(raiz, NIVEL_MAX);
+    percorreTriangulos(raiz, Triangulos);
+    countNos = 0;
+    contaNos(countNos, raiz);
+    cout << "Quadtree: nivel=" << NIVEL_MAX << " nos=" << countNos << endl;
+
+    resultado = ResultadoConsulta();   // o ponteiro "regiao" antigo ficou invalido
+    AtualizaConsulta();                // refaz a consulta se ja houver um ponto
 }
 
 // **********************************************************************
@@ -475,16 +565,8 @@ void init()
     CriaTriangulos();
 
     
-    NIVEL_MAX = 5;
-    countNos = 0;
-    raiz.aabb.centro = Ponto (0, 0);
-    raiz.aabb.meiaLarg.x = 10.0f;
-    raiz.aabb.meiaLarg.y = 5.0f;
-    raiz.nivel = 0;
-    divideQuadtree(raiz, NIVEL_MAX);
-    percorreTriangulos(raiz,Triangulos);
-    contaNos(countNos, raiz);
-    cout << "Nos armazenados: " << countNos << endl;
+    NIVEL_MAX = NIVEL_INICIAL;
+    ReconstroiQuadtree();
 }
 
 double nFrames=0;
@@ -544,17 +626,17 @@ void animate()
 //  trata o redimensionamento da janela OpenGL
 //
 // **********************************************************************
+int LARG_JANELA = 1000, ALT_JANELA = 500;   // tamanho atual da janela em pixels
+
 void reshape( int w, int h )
 {
-    // Reset the coordinate system before modifying
+    LARG_JANELA = w;
+    ALT_JANELA = h;
+
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    // Define a area a ser ocupada pela area OpenGL dentro da Janela
     glViewport(0, 0, w, h);
-    // Define os limites logicos da area OpenGL dentro da Janela
-    
     glOrtho(Min.x,Max.x, Min.y,Max.y, 0,1);
-    //glOrtho(0,10, 0,10, 0,1);
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
@@ -685,13 +767,12 @@ void AtualizaConsulta()
     if (!FoiClicado) return;
     resultado = executaConsulta(PontoClicado, Triangulos, raiz, usaQuadtree, usaEnvelope);
 
-    // Armazenando informacoes da configuracao atual e armazena no vector
-    Configuracao configuracaoAtual;
-    configuracaoAtual.usaQuadtree = usaQuadtree;
-    configuracaoAtual.usaEnvelope = usaEnvelope;
-    configuracaoAtual.totalTriangulos = resultado.candidatosQuadtree + resultado.aprovadosEnvelope;
-    configuracoes.push_back(configuracaoAtual);
-    verificaConfiguracoes(configuracoes);
+    // Referencia: forca bruta (config 1). Todas as configuracoes devem dar o mesmo conjunto final.
+    ResultadoConsulta ref = executaConsulta(PontoClicado, Triangulos, raiz, false, false);
+    std::vector<int> a = resultado.contem, b = ref.contem;
+    std::sort(a.begin(), a.end());
+    std::sort(b.begin(), b.end());
+    cout << (a == b ? "[OK] resultado igual ao da forca bruta" : "[ERRO] DIVERGE da forca bruta") << endl;
 
     ImprimeResultado();
 }
@@ -709,50 +790,38 @@ void MudaConfiguracao(bool quadtree, bool envelope)
 // **********************************************************************
 void display( void )
 {
-    // Limpa a tela coma cor de fundo
     glClear(GL_COLOR_BUFFER_BIT);
 
-    // Define os limites logicos da area OpenGL dentro da Janela
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    // Coloque aqui as chamadas das rotinas que desenham os objetos
-    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-   
+    // 1) fundo da regiao da quadtree (antes dos triangulos, senao cobre tudo)
+    destacaRegiaoContemPonto();
+
     glLineWidth(1);
-    glColor3f(0,0,0); // R, G, B  [0..1]
+    glColor3f(0,0,0);
     DesenhaEixos();
-    
+
+    // 2) triangulos base
     DesenhaTriangulos();
-    
-    /*
+
+    // 3) camadas opcionais (teclas 5 a 9)
+    desenhaEnvelopes();
+    realizaDesenhoQuadtree();
+
     if (FoiClicado)
     {
-        PintaTriangulosQueContemPonto(PontoClicado);
+        desenhaCandidadosQuadtree();      // laranja
+        desenhaAprovadosEnvelope();       // violeta
+
+        // 4) resultado final: triangulos que contem o ponto (vermelho)
+        for (int i = 0; i < (int)resultado.contem.size(); i++)
+        {
+            Triangulos[resultado.contem[i]].Pinta(Red);
+        }
         DesenhaPontoClicado();
     }
-    */
 
-    // realizaDesenhoQuadtree(); 
-    // desenhaEnvelopes(); 
-    
-        if (FoiClicado)
-        {
-            /*
-            destacaRegiaoContemPonto(); 
-            desenhaCandidadosQuadtree();
-            desenhaAprovadosEnvelope();
-            desenhaTriangulosContemPonto();
-            */
-            for (int i = 0; i < resultado.contem.size(); i++)
-            {
-                Triangulos[resultado.contem[i]].Pinta();
-            }
-            DesenhaPontoClicado();
-        }
-    
-    
     glutSwapBuffers();
 }
 // **********************************************************************
@@ -784,44 +853,48 @@ void ContaTempo(double tempo)
 // **********************************************************************
 Ponto ConverteMouseParaUniverso(int x, int y)
 {
-    GLint viewport[4];
-    GLdouble modelview[16], projection[16];
-    GLfloat wx = x, wy, wz;
-    GLdouble ox = 0.0, oy = 0.0, oz = 0.0;
-
-    glGetIntegerv(GL_VIEWPORT, viewport);
-
-    // Inverte a coordenada Y
-    y = viewport[3] - y;
-    wy = y;
-
-    glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
-    glGetDoublev(GL_PROJECTION_MATRIX, projection);
-
-    glReadPixels(x, y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &wz);
-
-    gluUnProject(wx, wy, wz,
-                 modelview, projection, viewport,
-                 &ox, &oy, &oz);
-
-    return Ponto(ox, oy, oz);
+    // x cresce para a direita; y do mouse cresce para BAIXO (por isso a inversao)
+    float wx = Min.x + (x / (float)LARG_JANELA) * (Max.x - Min.x);
+    float wy = Max.y - (y / (float)ALT_JANELA)  * (Max.y - Min.y);
+    return Ponto(wx, wy, 0);
 }
 // **********************************************************************
 // void Mouse(int button, int state, int x, int y)
 //      Trata o clique do botao esquerdo do mouse.
 // **********************************************************************
+// Mostra o ponto e os contadores na barra de titulo (usado durante o arrasto)
+void AtualizaTitulo()
+{
+    char buf[300];
+    snprintf(buf, sizeof(buf),
+        "P(%.2f, %.2f) | total=%d cand=%d aprov=%d testes=%d contem=%d | %.1f us",
+        PontoClicado.x, PontoClicado.y, resultado.totalTriangulos,
+        resultado.candidatosQuadtree, resultado.aprovadosEnvelope,
+        resultado.testesDetalhados, (int)resultado.contem.size(), resultado.tempoMicros);
+    glutSetWindowTitle(buf);
+}
+
+// Arrastando com o botao esquerdo: atualiza a consulta sem encher o console
+void MouseMovimento(int x, int y)
+{
+    PontoClicado = ConverteMouseParaUniverso(x, y);
+    FoiClicado = true;
+    resultado = executaConsulta(PontoClicado, Triangulos, raiz, usaQuadtree, usaEnvelope);
+    AtualizaTitulo();
+    glutPostRedisplay();
+}
+
 void Mouse(int button, int state, int x, int y)
 {
-    if (state != GLUT_DOWN)
-        return;
-
     if (button != GLUT_LEFT_BUTTON)
         return;
 
     PontoClicado = ConverteMouseParaUniverso(x, y);
-
     FoiClicado = true;
+
+    // ao apertar e ao soltar: consulta completa, com contadores e validacao no console
     AtualizaConsulta();
+    AtualizaTitulo();
     PontoClicado.imprime("- Ponto no universo: ", "\n");
 
     glutPostRedisplay();
@@ -854,12 +927,25 @@ void keyboard ( unsigned char key, int x, int y )
         case '7': opcaoDesenhaEnvelopes(); break;
         case '8': opcaoDesenhaCandidatosQuadtree(); break;
         case '9': opcaoDesenhaAprovadosEnvelope(); break;
-        case '10': opcaoDesenhaTriangulosContemPonto(); break;
+        case '0': opcaoDesenhaTriangulosContemPonto(); break;
+        case '+':
+        case '=':
+            if (NIVEL_MAX < 8) NIVEL_MAX++;
+            ReconstroiQuadtree();
+            break;
+        case '-':
+            if (NIVEL_MAX > 1) NIVEL_MAX--;
+            ReconstroiQuadtree();
+            break;
+        case 'b':
+            Benchmark(1000);
+            break;
         case 'i':
             imprimeMat = true;
         default:
             break;
     }
+    glutPostRedisplay();   // fora do switch: vale para qualquer tecla
 }
 // **********************************************************************
 // void arrow_keys(int a_keys, int x, int y)
@@ -895,6 +981,11 @@ void arrow_keys ( int a_keys, int x, int y )
 int  main ( int argc, char** argv )
 {
     cout << "Programa OpenGL" << endl;
+    if (argc > 1) N_TRIANGULOS = atoi(argv[1]);
+    if (argc > 2) SEMENTE = (unsigned int) atoi(argv[2]);
+    if (argc > 3) TAM_TRIANGULO = (float) atof(argv[3]);
+    if (argc > 4) NIVEL_INICIAL = atoi(argv[4]);
+    if (argc > 5) MODO_BENCH = true;
     
 
     glutInit            ( &argc, argv );
@@ -910,6 +1001,7 @@ int  main ( int argc, char** argv )
 
     // executa algumas inicializaes
     init ();
+    if (MODO_BENCH) { Benchmark(2000); return 0; }
 
     // Define que o tratador de evento para
     // o redesenho da tela. A funcao "display"
@@ -943,6 +1035,7 @@ int  main ( int argc, char** argv )
     // pressionar uma tecla especial
     glutSpecialFunc ( arrow_keys );
     glutMouseFunc(Mouse);
+    glutMotionFunc(MouseMovimento);   // arrastar o ponto
 
     // inicia o tratamento dos eventos
     glutMainLoop ( );

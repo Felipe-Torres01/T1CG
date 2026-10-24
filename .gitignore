@@ -1,0 +1,8 @@
+*.o
+BasicoOpenGL
+ProgOpenGL.exe
+.DS_Store
+patch*.py
+patches_T1.zip
+aplicar_tudo.sh
+benchmark.csv

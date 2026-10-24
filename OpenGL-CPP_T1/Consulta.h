@@ -25,9 +25,9 @@ struct ResultadoConsulta {
     std::vector<int> contem;      
 };
 
-void desenhaCandidatosDaQuadtree(ResultadoConsulta r, std::vector<Triangulo> triangulos);
+void desenhaCandidatosDaQuadtree(const ResultadoConsulta& r, std::vector<Triangulo>& triangulos);
 
-void desenhaAprovadosPeloEnvelope(ResultadoConsulta r, std::vector<Triangulo> triangulos);
+void desenhaAprovadosPeloEnvelope(const ResultadoConsulta& r, std::vector<Triangulo>& triangulos);
 
 ResultadoConsulta executaConsulta(Ponto p,
                                   std::vector<Triangulo>& triangulos,

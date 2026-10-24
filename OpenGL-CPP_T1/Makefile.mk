@@ -8,6 +8,7 @@ FONTES = Ponto.cpp \
          ListaDeCoresRGB.cpp \
          Triangulo.cpp \
          Quadtree.cpp \
+         Consulta.cpp \
          Prog-Triangulos.cpp
 
 OBJETOS = $(FONTES:.cpp=.o)
