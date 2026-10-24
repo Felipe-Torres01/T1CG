@@ -470,12 +470,17 @@ bool MODO_BENCH = false;      // se verdadeiro, roda o benchmark e encerra (argu
 
 void Benchmark(int nConsultas)
 {
-    // posicoes fixas (semente propria), iguais para todas as configuracoes
-    std::mt19937 gerador(12345);
+    std::mt19937 gerador(12345);   // semente propria: mesmas posicoes em todas as execucoes
     std::uniform_real_distribution<float> dx(Min.x, Max.x), dy(Min.y, Max.y);
-    std::vector<Ponto> pos;
-    for (int i = 0; i < nConsultas; i++)
-        pos.push_back(Ponto(dx(gerador), dy(gerador)));
+    std::uniform_real_distribution<float> frac(0.0f, 1.0f);
+    std::uniform_int_distribution<int> sorteiaVert(0, 2);
+    int nTri = (int)Triangulos.size();
+    if (nTri == 0) return;
+    std::uniform_int_distribution<int> sorteiaTri(0, nTri - 1);
+    std::uniform_int_distribution<int> sorteiaCanto(0, 3);
+
+    const int NTIPOS = 4;
+    const char* nomeTipo[NTIPOS] = {"uniforme", "dentro_de_triangulos", "vertices", "cantos"};
 
     const bool q[4] = {false, false, true, true};
     const bool e[4] = {false, true, false, true};
@@ -489,42 +494,88 @@ void Benchmark(int nConsultas)
     }
     std::ofstream csv("benchmark.csv", std::ios::app);
     if (escreveCabecalho)
-        csv << "N;semente;tamanho;nivel;nos;config;consultas;tempo_medio_us;cand_quadtree;aprov_envelope;testes_detalhados;contem;divergencias" << endl;
+        csv << "N;semente;tamanho;nivel;nos;posicoes;config;consultas;tempo_medio_us;cand_quadtree;aprov_envelope;testes_detalhados;contem;divergencias" << endl;
 
     cout << "=== Benchmark: N=" << N_TRIANGULOS << " semente=" << SEMENTE << " tamanho=" << TAM_TRIANGULO
          << " nivel=" << NIVEL_MAX << " nos=" << countNos << " consultas=" << nConsultas << " ===" << endl;
 
-    for (int c = 0; c < 4; c++)
+    for (int tipo = 0; tipo < NTIPOS; tipo++)
     {
-        // aquecimento (nao conta)
-        for (int i = 0; i < 50 && i < nConsultas; i++)
-            executaConsulta(pos[i], Triangulos, raiz, q[c], e[c]);
-
-        double tempo = 0, cand = 0, aprov = 0, det = 0, cont = 0;
-        int diverge = 0;
+        // ---- monta as posicoes deste tipo (iguais para as 4 configuracoes) ----
+        std::vector<Ponto> pos;
         for (int i = 0; i < nConsultas; i++)
         {
-            ResultadoConsulta r = executaConsulta(pos[i], Triangulos, raiz, q[c], e[c]);
-            tempo += r.tempoMicros;
-            cand  += r.candidatosQuadtree;
-            aprov += r.aprovadosEnvelope;
-            det   += r.testesDetalhados;
-            cont  += r.contem.size();
+            float x = 0, y = 0;
+            bool dentro = false;
+            int tentativas = 0;
+            // so valem posicoes DENTRO da janela (e nela que o usuario consegue clicar;
+            // triangulos podem ter vertices alem da borda, esses pontos sao descartados)
+            do
+            {
+                if (tipo == 0)                       // uniforme em todo o cenario
+                {
+                    x = dx(gerador); y = dy(gerador);
+                }
+                else if (tipo == 1)                  // centro de um triangulo sorteado
+                {
+                    Triangulo& T = Triangulos[sorteiaTri(gerador)];
+                    x = (T.getVertices(0).x + T.getVertices(1).x + T.getVertices(2).x) / 3.0f;
+                    y = (T.getVertices(0).y + T.getVertices(1).y + T.getVertices(2).y) / 3.0f;
+                }
+                else if (tipo == 2)                  // exatamente sobre um vertice (caso de borda: conta como dentro)
+                {
+                    Triangulo& T = Triangulos[sorteiaTri(gerador)];
+                    Ponto v = T.getVertices(sorteiaVert(gerador));
+                    x = v.x; y = v.y;
+                }
+                else                                 // faixa de 10% perto de um canto da janela
+                {
+                    int c = sorteiaCanto(gerador);
+                    float fx = frac(gerador) * 0.1f * (Max.x - Min.x);
+                    float fy = frac(gerador) * 0.1f * (Max.y - Min.y);
+                    x = (c & 1) ? Max.x - fx : Min.x + fx;
+                    y = (c & 2) ? Max.y - fy : Min.y + fy;
+                }
+                dentro = (x >= Min.x && x <= Max.x && y >= Min.y && y <= Max.y);
+                tentativas++;
+            } while (!dentro && tentativas < 1000);
 
-            ResultadoConsulta ref = executaConsulta(pos[i], Triangulos, raiz, false, false);
-            std::vector<int> a = r.contem, b = ref.contem;
-            std::sort(a.begin(), a.end());
-            std::sort(b.begin(), b.end());
-            if (a != b) diverge++;
+            if (!dentro) { x = dx(gerador); y = dy(gerador); }   // plano B: uniforme
+            pos.push_back(Ponto(x, y));
         }
-        tempo /= nConsultas; cand /= nConsultas; aprov /= nConsultas; det /= nConsultas; cont /= nConsultas;
 
-        printf("%d) %-18s tempo=%9.2f us | cand=%9.1f | aprov=%9.1f | testes=%9.1f | contem=%6.2f | divergencias=%d\n",
-               c + 1, nome[c], tempo, cand, aprov, det, cont, diverge);
+        for (int c = 0; c < 4; c++)
+        {
+            // aquecimento (nao conta)
+            for (int i = 0; i < 50 && i < nConsultas; i++)
+                executaConsulta(pos[i], Triangulos, raiz, q[c], e[c]);
 
-        csv << N_TRIANGULOS << ";" << SEMENTE << ";" << TAM_TRIANGULO << ";" << NIVEL_MAX << ";" << countNos << ";"
-            << nome[c] << ";" << nConsultas << ";" << tempo << ";" << cand << ";" << aprov << ";"
-            << det << ";" << cont << ";" << diverge << endl;
+            double tempo = 0, cand = 0, aprov = 0, det = 0, cont = 0;
+            int diverge = 0;
+            for (int i = 0; i < nConsultas; i++)
+            {
+                ResultadoConsulta r = executaConsulta(pos[i], Triangulos, raiz, q[c], e[c]);
+                tempo += r.tempoMicros;
+                cand  += r.candidatosQuadtree;
+                aprov += r.aprovadosEnvelope;
+                det   += r.testesDetalhados;
+                cont  += r.contem.size();
+
+                ResultadoConsulta ref = executaConsulta(pos[i], Triangulos, raiz, false, false);
+                std::vector<int> a = r.contem, b = ref.contem;
+                std::sort(a.begin(), a.end());
+                std::sort(b.begin(), b.end());
+                if (a != b) diverge++;
+            }
+            tempo /= nConsultas; cand /= nConsultas; aprov /= nConsultas; det /= nConsultas; cont /= nConsultas;
+
+            printf("%-20s %d) %-18s tempo=%9.2f us | cand=%9.1f | aprov=%9.1f | testes=%9.1f | contem=%6.2f | divergencias=%d\n",
+                   nomeTipo[tipo], c + 1, nome[c], tempo, cand, aprov, det, cont, diverge);
+
+            csv << N_TRIANGULOS << ";" << SEMENTE << ";" << TAM_TRIANGULO << ";" << NIVEL_MAX << ";" << countNos << ";"
+                << nomeTipo[tipo] << ";" << nome[c] << ";" << nConsultas << ";" << tempo << ";" << cand << ";" << aprov << ";"
+                << det << ";" << cont << ";" << diverge << endl;
+        }
     }
     cout << "(linhas acrescentadas em benchmark.csv)" << endl << endl;
 }
@@ -1001,7 +1052,7 @@ int  main ( int argc, char** argv )
 
     // executa algumas inicializaes
     init ();
-    if (MODO_BENCH) { Benchmark(2000); return 0; }
+    if (MODO_BENCH) { Benchmark(1000); return 0; }
 
     // Define que o tratador de evento para
     // o redesenho da tela. A funcao "display"
