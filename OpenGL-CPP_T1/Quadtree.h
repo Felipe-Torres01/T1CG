@@ -8,6 +8,8 @@
 typedef struct {
     Ponto centro;
     Ponto meiaLarg;
+    Ponto limitesMin;
+    Ponto limitesMax;
 } AABBQuadtree;
 
 struct NoQuadtree {
