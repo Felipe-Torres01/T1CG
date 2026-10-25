@@ -589,6 +589,10 @@ void ReconstroiQuadtree()
     raiz.aabb.meiaLarg.x = 10.0f;
     raiz.aabb.meiaLarg.y = 5.0f;
     raiz.nivel = 0;
+
+    raiz.aabb.limitesMin = Ponto (raiz.aabb.centro.x - raiz.aabb.meiaLarg.x, raiz.aabb.centro.y - raiz.aabb.meiaLarg.y);
+    raiz.aabb.limitesMax = Ponto (raiz.aabb.centro.x + raiz.aabb.meiaLarg.x, raiz.aabb.centro.y + raiz.aabb.meiaLarg.y);
+
     divideQuadtree(raiz, NIVEL_MAX);
     percorreTriangulos(raiz, Triangulos);
     countNos = 0;
